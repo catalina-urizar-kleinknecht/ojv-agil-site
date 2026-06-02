@@ -1,0 +1,735 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>OJV Ágil — Consulta masiva al Poder Judicial de Chile</title>
+  <meta name="description" content="Automatiza tus búsquedas en la Oficina Judicial Virtual. Busca cientos de RUTs en minutos, no en horas." />
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@700;900&family=DM+Sans:wght@300;400;500&display=swap" rel="stylesheet" />
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+    :root {
+      --rojo:       #C0392B;
+      --rojo-dark:  #922B21;
+      --rojo-light: #F9EBEA;
+      --negro:      #111010;
+      --gris:       #5A5A5A;
+      --gris-claro: #F5F4F2;
+      --blanco:     #FDFCFB;
+      --borde:      #E8E5E1;
+    }
+
+    html { scroll-behavior: smooth; }
+
+    body {
+      font-family: 'DM Sans', sans-serif;
+      background: var(--blanco);
+      color: var(--negro);
+      overflow-x: hidden;
+    }
+
+    /* ── NAV ── */
+    nav {
+      position: fixed; top: 0; left: 0; right: 0; z-index: 100;
+      display: flex; align-items: center; justify-content: space-between;
+      padding: 18px 40px;
+      background: rgba(253, 252, 251, 0.92);
+      backdrop-filter: blur(12px);
+      border-bottom: 1px solid var(--borde);
+    }
+
+    .nav-logo {
+      font-family: 'Playfair Display', serif;
+      font-size: 22px; font-weight: 900;
+      color: var(--negro); text-decoration: none;
+    }
+    .nav-logo span { color: var(--rojo); }
+
+    nav ul {
+      list-style: none;
+      display: flex; gap: 32px; align-items: center;
+    }
+    nav ul a {
+      text-decoration: none; font-size: 14px; font-weight: 500;
+      color: var(--gris); transition: color .2s;
+    }
+    nav ul a:hover { color: var(--negro); }
+
+    .nav-cta {
+      background: var(--rojo) !important;
+      color: white !important;
+      padding: 9px 22px;
+      border-radius: 6px;
+      font-weight: 500 !important;
+      transition: background .2s !important;
+    }
+    .nav-cta:hover { background: var(--rojo-dark) !important; color: white !important; }
+
+    /* ── HERO ── */
+    .hero {
+      min-height: 100vh;
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      align-items: center;
+      padding: 120px 40px 80px;
+      gap: 60px;
+      max-width: 1200px;
+      margin: 0 auto;
+    }
+
+    .hero-tag {
+      display: inline-flex; align-items: center; gap: 8px;
+      background: var(--rojo-light);
+      color: var(--rojo);
+      font-size: 12px; font-weight: 500;
+      padding: 6px 14px; border-radius: 99px;
+      margin-bottom: 24px;
+      letter-spacing: 0.05em; text-transform: uppercase;
+    }
+    .hero-tag::before {
+      content: ''; width: 6px; height: 6px;
+      background: var(--rojo); border-radius: 50%;
+    }
+
+    h1 {
+      font-family: 'Playfair Display', serif;
+      font-size: clamp(40px, 5vw, 62px);
+      font-weight: 900;
+      line-height: 1.08;
+      margin-bottom: 24px;
+      color: var(--negro);
+    }
+    h1 em {
+      font-style: italic;
+      color: var(--rojo);
+    }
+
+    .hero-sub {
+      font-size: 18px; font-weight: 300;
+      color: var(--gris);
+      line-height: 1.7;
+      margin-bottom: 40px;
+      max-width: 480px;
+    }
+
+    .hero-actions {
+      display: flex; gap: 14px; flex-wrap: wrap;
+    }
+
+    .btn-primary {
+      background: var(--rojo);
+      color: white;
+      padding: 14px 30px;
+      border-radius: 8px;
+      font-size: 15px; font-weight: 500;
+      text-decoration: none;
+      transition: background .2s, transform .15s;
+      display: inline-flex; align-items: center; gap: 8px;
+    }
+    .btn-primary:hover { background: var(--rojo-dark); transform: translateY(-1px); }
+
+    .btn-secondary {
+      background: transparent;
+      color: var(--negro);
+      padding: 14px 30px;
+      border-radius: 8px;
+      font-size: 15px; font-weight: 500;
+      text-decoration: none;
+      border: 1.5px solid var(--borde);
+      transition: border-color .2s, transform .15s;
+      display: inline-flex; align-items: center; gap: 8px;
+    }
+    .btn-secondary:hover { border-color: var(--negro); transform: translateY(-1px); }
+
+    /* Hero visual */
+    .hero-visual {
+      background: var(--negro);
+      border-radius: 16px;
+      padding: 28px;
+      box-shadow: 0 40px 80px rgba(0,0,0,0.15);
+      position: relative;
+      overflow: hidden;
+    }
+    .hero-visual::before {
+      content: '';
+      position: absolute; inset: 0;
+      background: linear-gradient(135deg, rgba(192,57,43,0.15) 0%, transparent 60%);
+    }
+
+    .app-window {
+      background: #1C1C1E;
+      border-radius: 10px;
+      overflow: hidden;
+    }
+    .app-titlebar {
+      background: #2C2C2E;
+      padding: 10px 16px;
+      display: flex; align-items: center; gap: 8px;
+    }
+    .dot { width: 11px; height: 11px; border-radius: 50%; }
+    .dot-r { background: #FF5F56; }
+    .dot-y { background: #FFBD2E; }
+    .dot-g { background: #27C93F; }
+    .app-title { color: #888; font-size: 12px; margin-left: 8px; }
+
+    .app-body { padding: 20px; }
+
+    .app-header-strip {
+      background: var(--rojo);
+      border-radius: 6px;
+      padding: 12px 16px;
+      margin-bottom: 16px;
+    }
+    .app-header-strip h3 {
+      color: white;
+      font-family: 'Playfair Display', serif;
+      font-size: 18px;
+    }
+    .app-header-strip p { color: rgba(255,255,255,0.7); font-size: 11px; }
+
+    .app-field {
+      background: #2C2C2E;
+      border-radius: 6px;
+      padding: 10px 14px;
+      margin-bottom: 10px;
+    }
+    .app-field-label { color: #888; font-size: 10px; margin-bottom: 4px; }
+    .app-field-value { color: #F5F5F5; font-size: 13px; }
+
+    .app-progress {
+      margin-top: 16px;
+    }
+    .progress-label {
+      display: flex; justify-content: space-between;
+      color: #888; font-size: 11px; margin-bottom: 6px;
+    }
+    .progress-bar-bg {
+      background: #2C2C2E; border-radius: 99px; height: 6px;
+    }
+    .progress-bar-fill {
+      background: var(--rojo); border-radius: 99px; height: 6px;
+      width: 68%;
+      animation: progress-anim 2s ease-in-out infinite alternate;
+    }
+    @keyframes progress-anim {
+      from { width: 40%; } to { width: 80%; }
+    }
+
+    .app-log {
+      margin-top: 14px;
+      background: #111;
+      border-radius: 6px;
+      padding: 10px 14px;
+      font-family: 'Courier New', monospace;
+      font-size: 11px;
+      line-height: 1.8;
+    }
+    .log-ok    { color: #27C93F; }
+    .log-info  { color: #8E8E93; }
+    .log-warn  { color: #FFBD2E; }
+
+    /* ── STATS ── */
+    .stats {
+      background: var(--negro);
+      padding: 60px 40px;
+    }
+    .stats-inner {
+      max-width: 1200px; margin: 0 auto;
+      display: grid; grid-template-columns: repeat(3, 1fr);
+      gap: 2px;
+    }
+    .stat {
+      padding: 40px;
+      text-align: center;
+      border-right: 1px solid #222;
+    }
+    .stat:last-child { border-right: none; }
+    .stat-num {
+      font-family: 'Playfair Display', serif;
+      font-size: 52px; font-weight: 900;
+      color: var(--rojo);
+      line-height: 1;
+      margin-bottom: 8px;
+    }
+    .stat-label { color: #888; font-size: 14px; }
+
+    /* ── FEATURES ── */
+    .features {
+      padding: 100px 40px;
+      max-width: 1200px; margin: 0 auto;
+    }
+
+    .section-label {
+      font-size: 12px; font-weight: 500;
+      color: var(--rojo);
+      text-transform: uppercase; letter-spacing: 0.1em;
+      margin-bottom: 16px;
+    }
+
+    .section-title {
+      font-family: 'Playfair Display', serif;
+      font-size: clamp(28px, 4vw, 44px);
+      font-weight: 900;
+      line-height: 1.15;
+      margin-bottom: 60px;
+      max-width: 600px;
+    }
+
+    .features-grid {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 2px;
+      background: var(--borde);
+      border: 1px solid var(--borde);
+      border-radius: 12px;
+      overflow: hidden;
+    }
+
+    .feature {
+      background: var(--blanco);
+      padding: 36px 32px;
+      transition: background .2s;
+    }
+    .feature:hover { background: var(--rojo-light); }
+
+    .feature-icon {
+      font-size: 28px;
+      margin-bottom: 16px;
+      display: block;
+    }
+
+    .feature h3 {
+      font-size: 17px; font-weight: 500;
+      margin-bottom: 10px;
+    }
+
+    .feature p {
+      font-size: 14px; color: var(--gris);
+      line-height: 1.7;
+    }
+
+    /* ── HOW IT WORKS ── */
+    .how {
+      background: var(--gris-claro);
+      padding: 100px 40px;
+    }
+    .how-inner {
+      max-width: 1200px; margin: 0 auto;
+    }
+
+    .steps {
+      display: grid;
+      grid-template-columns: repeat(4, 1fr);
+      gap: 32px;
+      margin-top: 60px;
+      position: relative;
+    }
+    .steps::before {
+      content: '';
+      position: absolute;
+      top: 28px; left: 10%; right: 10%;
+      height: 1px;
+      background: var(--borde);
+    }
+
+    .step { text-align: center; position: relative; }
+
+    .step-num {
+      width: 56px; height: 56px;
+      background: var(--rojo);
+      color: white;
+      border-radius: 50%;
+      display: flex; align-items: center; justify-content: center;
+      font-family: 'Playfair Display', serif;
+      font-size: 22px; font-weight: 900;
+      margin: 0 auto 20px;
+      position: relative; z-index: 1;
+    }
+
+    .step h3 { font-size: 16px; font-weight: 500; margin-bottom: 8px; }
+    .step p { font-size: 13px; color: var(--gris); line-height: 1.6; }
+
+    /* ── DEMO ── */
+    .demo {
+      padding: 100px 40px;
+      max-width: 1200px; margin: 0 auto;
+    }
+
+    .demo-placeholder {
+      background: var(--negro);
+      border-radius: 16px;
+      height: 460px;
+      display: flex; flex-direction: column;
+      align-items: center; justify-content: center;
+      gap: 20px;
+      margin-top: 60px;
+      position: relative;
+      overflow: hidden;
+    }
+    .demo-placeholder::before {
+      content: '';
+      position: absolute; inset: 0;
+      background: radial-gradient(ellipse at 30% 50%, rgba(192,57,43,0.2) 0%, transparent 60%);
+    }
+
+    .play-btn {
+      width: 72px; height: 72px;
+      background: var(--rojo);
+      border-radius: 50%;
+      display: flex; align-items: center; justify-content: center;
+      cursor: pointer;
+      transition: transform .2s, box-shadow .2s;
+      position: relative; z-index: 1;
+    }
+    .play-btn:hover { transform: scale(1.08); box-shadow: 0 0 0 12px rgba(192,57,43,0.2); }
+    .play-btn svg { width: 28px; height: 28px; fill: white; margin-left: 4px; }
+
+    .demo-placeholder p {
+      color: #666; font-size: 15px; position: relative; z-index: 1;
+    }
+
+    /* ── CONTACT ── */
+    .contact {
+      background: var(--negro);
+      padding: 100px 40px;
+    }
+    .contact-inner {
+      max-width: 640px; margin: 0 auto; text-align: center;
+    }
+    .contact-inner .section-label { color: var(--rojo); }
+    .contact-inner .section-title { color: white; margin: 0 auto 16px; }
+    .contact-sub {
+      color: #888; font-size: 16px; line-height: 1.7; margin-bottom: 48px;
+    }
+
+    .contact-form {
+      display: flex; flex-direction: column; gap: 14px;
+      text-align: left;
+    }
+
+    .form-row { display: grid; grid-template-columns: 1fr 1fr; gap: 14px; }
+
+    .form-group { display: flex; flex-direction: column; gap: 6px; }
+    .form-group label { color: #888; font-size: 12px; }
+    .form-group input,
+    .form-group textarea,
+    .form-group select {
+      background: #1C1C1E;
+      border: 1px solid #333;
+      border-radius: 8px;
+      padding: 12px 16px;
+      color: white;
+      font-family: 'DM Sans', sans-serif;
+      font-size: 14px;
+      outline: none;
+      transition: border-color .2s;
+    }
+    .form-group input:focus,
+    .form-group textarea:focus,
+    .form-group select:focus { border-color: var(--rojo); }
+    .form-group textarea { min-height: 120px; resize: vertical; }
+    .form-group select option { background: #1C1C1E; }
+
+    .form-submit {
+      background: var(--rojo);
+      color: white;
+      border: none;
+      padding: 14px 32px;
+      border-radius: 8px;
+      font-family: 'DM Sans', sans-serif;
+      font-size: 15px; font-weight: 500;
+      cursor: pointer;
+      transition: background .2s;
+      margin-top: 8px;
+    }
+    .form-submit:hover { background: var(--rojo-dark); }
+
+    .contact-alt {
+      margin-top: 40px;
+      color: #555; font-size: 14px;
+    }
+    .contact-alt a { color: var(--rojo); text-decoration: none; }
+    .contact-alt a:hover { text-decoration: underline; }
+
+    /* ── FOOTER ── */
+    footer {
+      border-top: 1px solid #222;
+      background: var(--negro);
+      padding: 30px 40px;
+      display: flex; justify-content: space-between; align-items: center;
+    }
+    .footer-logo {
+      font-family: 'Playfair Display', serif;
+      font-size: 18px; font-weight: 900;
+      color: white;
+    }
+    .footer-logo span { color: var(--rojo); }
+    footer p { color: #444; font-size: 13px; }
+
+    /* ── ANIMATIONS ── */
+    .fade-up {
+      opacity: 0;
+      transform: translateY(30px);
+      transition: opacity .6s ease, transform .6s ease;
+    }
+    .fade-up.visible {
+      opacity: 1;
+      transform: translateY(0);
+    }
+
+    /* ── RESPONSIVE ── */
+    @media (max-width: 900px) {
+      .hero { grid-template-columns: 1fr; padding-top: 100px; }
+      .hero-visual { display: none; }
+      .stats-inner { grid-template-columns: 1fr; }
+      .stat { border-right: none; border-bottom: 1px solid #222; }
+      .features-grid { grid-template-columns: 1fr; }
+      .steps { grid-template-columns: 1fr 1fr; }
+      .steps::before { display: none; }
+      .form-row { grid-template-columns: 1fr; }
+      nav { padding: 16px 20px; }
+      nav ul { display: none; }
+    }
+  </style>
+</head>
+<body>
+
+<!-- NAV -->
+<nav>
+  <a href="#" class="nav-logo">OJV <span>Ágil</span></a>
+  <ul>
+    <li><a href="#funcionalidades">Funcionalidades</a></li>
+    <li><a href="#como-funciona">Cómo funciona</a></li>
+    <li><a href="#demo">Demo</a></li>
+    <li><a href="#contacto" class="nav-cta">Solicitar licencia</a></li>
+  </ul>
+</nav>
+
+<!-- HERO -->
+<section class="hero">
+  <div class="hero-text">
+    <div class="hero-tag">Para abogados y estudios jurídicos</div>
+    <h1>Consulta el OJV en <em>minutos,</em> no en horas.</h1>
+    <p class="hero-sub">
+      OJV Ágil automatiza tus búsquedas en la Oficina Judicial Virtual del Poder Judicial de Chile.
+      Carga una lista de RUTs, presiona un botón, y recibe un Excel con todos los resultados.
+    </p>
+    <div class="hero-actions">
+      <a href="#demo" class="btn-primary">
+        ▶ Ver demo
+      </a>
+      <a href="#contacto" class="btn-secondary">
+        Solicitar licencia →
+      </a>
+    </div>
+  </div>
+
+  <div class="hero-visual">
+    <div class="app-window">
+      <div class="app-titlebar">
+        <div class="dot dot-r"></div>
+        <div class="dot dot-y"></div>
+        <div class="dot dot-g"></div>
+        <span class="app-title">OJV Ágil</span>
+      </div>
+      <div class="app-body">
+        <div class="app-header-strip">
+          <h3>OJV Ágil</h3>
+          <p>Consulta masiva · Poder Judicial de Chile</p>
+        </div>
+        <div class="app-field">
+          <div class="app-field-label">Archivo cargado</div>
+          <div class="app-field-value">✅ 47 RUTs jurídicos cargados</div>
+        </div>
+        <div class="app-field">
+          <div class="app-field-label">Tipo de búsqueda</div>
+          <div class="app-field-value">RUT Jurídico · Últimos 12 meses</div>
+        </div>
+        <div class="app-progress">
+          <div class="progress-label">
+            <span>🔍 Buscando RUT jurídico: 76354771-K</span>
+            <span>32 / 47</span>
+          </div>
+          <div class="progress-bar-bg">
+            <div class="progress-bar-fill"></div>
+          </div>
+        </div>
+        <div class="app-log">
+          <div class="log-ok">✅ RUT 97030000-7 completado.</div>
+          <div class="log-info">&nbsp;&nbsp; 📄 Página 1: 25 filas</div>
+          <div class="log-info">&nbsp;&nbsp; 📄 Página 2: 18 filas</div>
+          <div class="log-ok">✅ RUT 76354771-K completado.</div>
+          <div class="log-warn">⚠️ Sin resultados para 12345678-9</div>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- STATS -->
+<div class="stats">
+  <div class="stats-inner">
+    <div class="stat fade-up">
+      <div class="stat-num">100×</div>
+      <div class="stat-label">más rápido que la búsqueda manual</div>
+    </div>
+    <div class="stat fade-up">
+      <div class="stat-num">Excel</div>
+      <div class="stat-label">resultados listos para usar</div>
+    </div>
+    <div class="stat fade-up">
+      <div class="stat-num">0</div>
+      <div class="stat-label">conocimientos técnicos necesarios</div>
+    </div>
+  </div>
+</div>
+
+<!-- FEATURES -->
+<section class="features" id="funcionalidades">
+  <div class="section-label fade-up">Funcionalidades</div>
+  <h2 class="section-title fade-up">Todo lo que necesitas para ahorrar horas de trabajo.</h2>
+  <div class="features-grid">
+    <div class="feature fade-up">
+      <span class="feature-icon">📂</span>
+      <h3>Carga masiva de RUTs</h3>
+      <p>Sube tu lista en Excel o CSV. La app detecta automáticamente la columna de RUTs y comienza a trabajar.</p>
+    </div>
+    <div class="feature fade-up">
+      <span class="feature-icon">⚡</span>
+      <h3>Búsqueda automatizada</h3>
+      <p>Navega el OJV automáticamente por ti, página a página, RUT por RUT. Sin clicks manuales.</p>
+    </div>
+    <div class="feature fade-up">
+      <span class="feature-icon">📊</span>
+      <h3>Excel organizado</h3>
+      <p>Resultados exportados con hojas separadas por tipo de búsqueda y filtro de fecha configurable.</p>
+    </div>
+    <div class="feature fade-up">
+      <span class="feature-icon">🟡</span>
+      <h3>Causas nuevas resaltadas</h3>
+      <p>Compara contra tu búsqueda anterior y ve al instante qué causas son nuevas, resaltadas en amarillo.</p>
+    </div>
+    <div class="feature fade-up">
+      <span class="feature-icon">🔇</span>
+      <h3>Modo segundo plano</h3>
+      <p>Trabaja sin distracciones. Activa el modo silencioso y el navegador corre invisible mientras tú haces otra cosa.</p>
+    </div>
+    <div class="feature fade-up">
+      <span class="feature-icon">🔍</span>
+      <h3>RUT Jurídico y Persona Natural</h3>
+      <p>Busca por RUT de empresa o por nombre de persona natural. O ambos en la misma corrida.</p>
+    </div>
+  </div>
+</section>
+
+<!-- HOW IT WORKS -->
+<section class="how" id="como-funciona">
+  <div class="how-inner">
+    <div class="section-label fade-up">Cómo funciona</div>
+    <h2 class="section-title fade-up">De tu lista de RUTs al Excel en cuatro pasos.</h2>
+    <div class="steps">
+      <div class="step fade-up">
+        <div class="step-num">1</div>
+        <h3>Inicia sesión</h3>
+        <p>Ingresa tu RUT y Clave Única del Estado. La app se encarga del resto.</p>
+      </div>
+      <div class="step fade-up">
+        <div class="step-num">2</div>
+        <h3>Sube tu lista</h3>
+        <p>Carga tu archivo Excel o CSV con los RUTs que quieres consultar.</p>
+      </div>
+      <div class="step fade-up">
+        <div class="step-num">3</div>
+        <h3>Configura y lanza</h3>
+        <p>Elige el tipo de búsqueda, el filtro de fecha y presiona iniciar.</p>
+      </div>
+      <div class="step fade-up">
+        <div class="step-num">4</div>
+        <h3>Recibe tu Excel</h3>
+        <p>Al terminar, el archivo se guarda automáticamente donde tú elijas.</p>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- DEMO -->
+<section class="demo" id="demo">
+  <div class="section-label fade-up">Demo</div>
+  <h2 class="section-title fade-up">Míralo en acción.</h2>
+  <div class="demo-placeholder fade-up">
+    <div class="play-btn">
+      <svg viewBox="0 0 24 24"><path d="M8 5v14l11-7z"/></svg>
+    </div>
+    <p>Video demostrativo — próximamente</p>
+  </div>
+</section>
+
+<!-- CONTACT -->
+<section class="contact" id="contacto">
+  <div class="contact-inner">
+    <div class="section-label">Contacto</div>
+    <h2 class="section-title">¿Listo para dejar de hacerlo a mano?</h2>
+    <p class="contact-sub">
+      Escríbeme y te envío tu clave de licencia. Sin compromisos, respondo el mismo día.
+    </p>
+
+    <form class="contact-form" action="https://formspree.io/f/TU_ID_AQUI" method="POST">
+      <div class="form-row">
+        <div class="form-group">
+          <label for="nombre">Nombre</label>
+          <input type="text" id="nombre" name="nombre" placeholder="María González" required />
+        </div>
+        <div class="form-group">
+          <label for="firma">Firma o estudio</label>
+          <input type="text" id="firma" name="firma" placeholder="González & Asociados" />
+        </div>
+      </div>
+      <div class="form-group">
+        <label for="email">Correo electrónico</label>
+        <input type="email" id="email" name="email" placeholder="maria@firma.cl" required />
+      </div>
+      <div class="form-group">
+        <label for="mensaje">Mensaje (opcional)</label>
+        <textarea id="mensaje" name="mensaje" placeholder="Cuéntame cuántos RUTs consultas normalmente, o cualquier pregunta que tengas..."></textarea>
+      </div>
+      <button type="submit" class="form-submit">Solicitar licencia →</button>
+    </form>
+
+    <p class="contact-alt">
+      También puedes escribirme directamente a
+      <a href="mailto:TU_EMAIL@gmail.com">TU_EMAIL@gmail.com</a>
+    </p>
+  </div>
+</section>
+
+<!-- FOOTER -->
+<footer>
+  <div class="footer-logo">OJV <span>Ágil</span></div>
+  <p>© 2025 · Herramienta independiente · No afiliado al Poder Judicial de Chile</p>
+</footer>
+
+<script>
+  // Fade-up on scroll
+  const observer = new IntersectionObserver((entries) => {
+    entries.forEach(e => {
+      if (e.isIntersecting) {
+        e.target.classList.add('visible');
+        observer.unobserve(e.target);
+      }
+    });
+  }, { threshold: 0.12 });
+
+  document.querySelectorAll('.fade-up').forEach(el => observer.observe(el));
+
+  // Contact form feedback
+  const form = document.querySelector('.contact-form');
+  form.addEventListener('submit', async (e) => {
+    const btn = form.querySelector('.form-submit');
+    btn.textContent = 'Enviando...';
+    btn.disabled = true;
+  });
+</script>
+</body>
+</html>
