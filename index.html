@@ -197,26 +197,7 @@
     }
     .app-field-label { color: #888; font-size: 10px; margin-bottom: 4px; }
     .app-field-value { color: #F5F5F5; font-size: 13px; }
-
-    .app-progress {
-      margin-top: 16px;
-    }
-    .progress-label {
-      display: flex; justify-content: space-between;
-      color: #888; font-size: 11px; margin-bottom: 6px;
-    }
-    .progress-bar-bg {
-      background: #2C2C2E; border-radius: 99px; height: 6px;
-    }
-    .progress-bar-fill {
-      background: var(--rojo); border-radius: 99px; height: 6px;
-      width: 68%;
-      animation: progress-anim 2s ease-in-out infinite alternate;
-    }
-    @keyframes progress-anim {
-      from { width: 40%; } to { width: 80%; }
-    }
-
+    
     .app-log {
       margin-top: 14px;
       background: #111;
@@ -547,22 +528,17 @@
           <div class="app-field-label">Tipo de búsqueda</div>
           <div class="app-field-value">RUT Jurídico · Últimos 12 meses</div>
         </div>
-        <div class="app-progress">
-          <div class="progress-label">
-            <span>🔍 Buscando RUT jurídico: 76354771-K</span>
-            <span>32 / 47</span>
-          </div>
-          <div class="progress-bar-bg">
-            <div class="progress-bar-fill"></div>
-          </div>
-        </div>
         <div class="app-log">
-          <div class="log-ok">✅ RUT 97030000-7 completado.</div>
-          <div class="log-info">&nbsp;&nbsp; 📄 Página 1: 25 filas</div>
-          <div class="log-info">&nbsp;&nbsp; 📄 Página 2: 18 filas</div>
-          <div class="log-ok">✅ RUT 76354771-K completado.</div>
-          <div class="log-warn">⚠️ Sin resultados para 12345678-9</div>
-        </div>
+  <div class="log-info">📋 47 RUTs jurídicos cargados</div>
+  <div class="log-info">📅 Filtro: Últimos 12 meses</div>
+  <div class="log-info">🔍 [1/47] Buscando RUT: 97030000-7</div>
+  <div class="log-info">&nbsp;&nbsp; 📄 Página 1: 25 filas</div>
+  <div class="log-info">&nbsp;&nbsp; 📄 Página 2: 18 filas</div>
+  <div class="log-ok">✅ RUT 97030000-7 completado.</div>
+  <div class="log-info">🔍 [2/47] Buscando RUT: 76354771-K</div>
+  <div class="log-warn">⚠️  Sin resultados para 12345678-9</div>
+  <div class="log-ok">✅ RUT 76354771-K completado.</div>
+</div>
       </div>
     </div>
   </div>
